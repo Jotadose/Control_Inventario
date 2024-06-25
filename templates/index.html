@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Inventario</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Control de Inventario</h1>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h2 class="card-title">Agregar Producto</h2>
+                <input type="number" id="agregar_id" class="form-control mb-2" placeholder="ID del producto">
+                <input type="text" id="agregar_nombre" class="form-control mb-2" placeholder="Nombre del producto">
+                <input type="number" id="agregar_cantidad" class="form-control mb-2" placeholder="Cantidad">
+                <input type="number" id="agregar_precio" class="form-control mb-2" placeholder="Precio">
+                <button class="btn btn-primary" onclick="agregarProducto()">Agregar Producto</button>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h2 class="card-title">Actualizar Stock</h2>
+                <input type="number" id="actualizar_id" class="form-control mb-2" placeholder="ID del producto">
+                <input type="number" id="actualizar_cantidad" class="form-control mb-2" placeholder="Nueva cantidad">
+                <button class="btn btn-primary" onclick="actualizarStock()">Actualizar Stock</button>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h2 class="card-title">Mostrar Inventario</h2>
+                <button class="btn btn-primary" onclick="mostrarInventario()">Mostrar Inventario</button>
+                <div id="inventario" class="mt-3"></div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h2 class="card-title">Predicción de Demanda</h2>
+                <div id="prediccion_inputs" class="form-group">
+                    <input type="number" class="form-control mb-2" placeholder="Ventas Día 1">
+                    <input type="number" class="form-control mb-2" placeholder="Ventas Día 2">
+                    <input type="number" class="form-control mb-2" placeholder="Ventas Día 3">
+                    <input type="number" class="form-control mb-2" placeholder="Ventas Día 4">
+                    <input type="number" class="form-control mb-2" placeholder="Ventas Día 5">
+                    <input type="number" class="form-control mb-2" placeholder="Ventas Día 6">
+                    <input type="number" class="form-control mb-2" placeholder="Ventas Día 7">
+                </div>
+                <button class="btn btn-primary" onclick="predecirDemanda()">Predecir Demanda</button>
+                <p id="resultado_prediccion" class="mt-3"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
