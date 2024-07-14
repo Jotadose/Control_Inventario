@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Inventario</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #1a202c; }
+        .container { max-width: 1200px; }
+        .sidebar { min-width: 200px; }
+    </style>
+</head>
+<body class="text-gray-200">
+    <div class="container mx-auto p-4 flex">
+        <div class="sidebar bg-gray-700 p-4 rounded-lg">
+            <ul class="space-y-4">
+                <li><a href="inicio" class="text-white">INICIO</a></li>
+                <li><a href="inventario" class="text-white">INVENTARIO</a></li>
+                <li><a href="ventas" class="text-white">VENTAS</a></li>
+                <li><a href="admin" class="text-white">ADMINISTRADOR</a></li>
+            </ul>
+        </div>
+        <div class="flex-grow ml-4">
+            <h1 class="text-3xl font-bold text-center mb-8">Control de Inventario</h1>
+            <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                <h2 class="text-xl font-bold mb-4">Agregar Producto</h2>
+                <div class="grid grid-cols-4 gap-4">
+                    <input type="number" id="id" placeholder="ID del Producto" class="p-2 rounded bg-gray-700 text-white">
+                    <input type="text" id="nombre" placeholder="Nombre del Producto" class="p-2 rounded bg-gray-700 text-white">
+                    <input type="number" id="cantidad" placeholder="Cantidad" class="p-2 rounded bg-gray-700 text-white">
+                    <input type="number" id="precio" placeholder="Precio" class="p-2 rounded bg-gray-700 text-white">
+                </div>
+                <div class="flex space-x-4 mt-4">
+                    <button onclick="agregarProducto()" class="p-2 bg-blue-500 text-white rounded">Agregar</button>
+                    <button onclick="actualizarProducto()" class="p-2 bg-yellow-500 text-white rounded">Actualizar</button>
+                    <button onclick="eliminarProducto()" class="p-2 bg-red-500 text-white rounded">Eliminar</button>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                    <h2 class="text-xl font-bold mb-4">Agregar Devolucion o Articulo defectuoso</h2>
+                    <div class="grid grid-cols-4 gap-4">
+                        <input type="number" id="id" placeholder="ID del Producto" class="p-2 rounded bg-gray-700 text-white">
+                        <input type="text" id="nombre" placeholder="Nombre del Producto" class="p-2 rounded bg-gray-700 text-white">
+                        <input type="number" id="cantidad" placeholder="Cantidad" class="p-2 rounded bg-gray-700 text-white">
+                        <input type="number" id="precio" placeholder="Precio" class="p-2 rounded bg-gray-700 text-white">
+                    </div>
+                    <div class="flex space-x-4 mt-4">
+                        <button onclick="agregarProducto()" class="p-2 bg-blue-500 text-white rounded">Agregar</button>
+                        <button onclick="actualizarProducto()" class="p-2 bg-yellow-500 text-white rounded">Actualizar</button>
+                        <button onclick="eliminarProducto()" class="p-2 bg-red-500 text-white rounded">Eliminar</button>
+                    </div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                <h2 class="text-xl font-bold mb-4">Mostrar Inventario</h2>
+                <div class="overflow-x-auto">
+                    <table id="tabla-inventario" class="min-w-full bg-gray-700 rounded-lg">
+                        <thead class="text-white">
+                            <tr>
+                                <th class="px-4 py-2">ID</th>
+                                <th class="px-4 py-2">Nombre del Producto</th>
+                                <th class="px-4 py-2">Cantidad</th>
+                                <th class="px-4 py-2">Precio</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function mostrarInventario() {
+            axios.get('/mostrar_inventario').then(response => {
+                const inventario = response.data.inventario;
+                const tbody = document.getElementById('tabla-inventario').getElementsByTagName('tbody')[0];
+                tbody.innerHTML = '';
+                inventario.forEach(producto => {
+                    tbody.innerHTML += `<tr>
+                        <td class="border px-4 py-2">${producto.id}</td>
+                        <td class="border px-4 py-2">${producto.nombre}</td>
+                        <td class="border px-4 py-2">${producto.cantidad}</td>
+                        <td class="border px-4 py-2">${producto.precio}</td>
+                    </tr>`;
+                });
+            }).catch(error => console.error('Error al cargar el inventario:', error));
+        }
+
+        function agregarProducto() {
+            const id = document.getElementById('id').value;
+            const nombre = document.getElementById('nombre').value;
+            const cantidad = document.getElementById('cantidad').value;
+            const precio = document.getElementById('precio').value;
+            axios.post('/agregar_producto', { id, nombre, cantidad, precio })
+                .then(response => {
+                    alert('Producto agregado: ' + response.data.message);
+                    mostrarInventario();
+                })
+                .catch(error => {
+                    alert('Error al agregar producto: ' + (error.response.data.error || 'Error desconocido'));
+                });
+        }
+
+        function actualizarProducto() {
+            const id = document.getElementById('id').value;
+            const nombre = document.getElementById('nombre').value;
+            const cantidad = document.getElementById('cantidad').value;
+            const precio = document.getElementById('precio').value;
+            axios.post('/actualizar_producto', { id, nuevo_nombre: nombre, nueva_cantidad: cantidad, nuevo_precio: precio })
+                .then(response => {
+                    alert('Producto actualizado: ' + response.data.message);
+                    mostrarInventario();
+                })
+                .catch(error => {
+                    alert('Error al actualizar producto: ' + (error.response.data.error || 'Error desconocido'));
+                });
+        }
+
+        function eliminarProducto() {
+            const id = document.getElementById('id').value;
+            if (confirm('¿Estás seguro de eliminar este producto?')) {
+                axios.post('/eliminar_producto', { id: id })
+                    .then(response => {
+                        alert('Producto eliminado: ' + response.data.message);
+                        mostrarInventario();
+                    })
+                    .catch(error => {
+                        alert('Error al eliminar producto: ' + (error.response.data.error || 'Error desconocido'));
+                    });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', mostrarInventario);
+    </script>
+</body>
+</html>

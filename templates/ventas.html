@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas - Control de Inventario</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #1a202c; }
+        .container { max-width: 1200px; }
+        .sidebar { min-width: 200px; }
+    </style>
+</head>
+<body class="text-gray-200">
+    <div class="container mx-auto p-4 flex">
+        <div class="sidebar bg-gray-700 p-4 rounded-lg">
+            <ul class="space-y-4">
+                <li><a href="/" class="text-white">INICIO</a></li>
+                <li><a href="/inventario" class="text-white">INVENTARIO</a></li>
+                <li><a href="/ventas" class="text-white">VENTAS</a></li>
+                <li><a href="/admin" class="text-white">ADMINISTRADOR</a></li>
+            </ul>
+        </div>
+        <div class="flex-grow ml-4">
+            <h1 class="text-3xl font-bold text-center mb-8">Ventas - Control de Inventario</h1>
+            <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                <h2 class="text-xl font-bold mb-4">Agregar Productos al Carrito</h2>
+                <div class="grid grid-cols-3 gap-4">
+                    <select id="producto_id" class="p-2 rounded bg-gray-700 text-white"></select>
+                    <input type="number" id="cantidad" placeholder="Cantidad" class="p-2 rounded bg-gray-700 text-white">
+                    <button onclick="agregarAlCarrito()" class="p-2 bg-green-500 text-white rounded">Agregar al Carrito</button>
+                </div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                <h2 class="text-xl font-bold mb-4">Carrito de Ventas</h2>
+                <div class="overflow-x-auto">
+                    <table id="tabla-carrito" class="min-w-full bg-gray-700 rounded-lg">
+                        <thead class="text-white">
+                            <tr>
+                                <th class="px-4 py-2">ID</th>
+                                <th class="px-4 py-2">Producto</th>
+                                <th class="px-4 py-2">Cantidad</th>
+                                <th class="px-4 py-2">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <button onclick="registrarVenta()" class="p-2 bg-blue-500 text-white rounded mt-4">Registrar Venta</button>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                <h2 class="text-xl font-bold mb-4">Ventas Registradas</h2>
+                <div class="overflow-x-auto">
+                    <table id="tabla-ventas" class="min-w-full bg-gray-700 rounded-lg">
+                        <thead class="text-white">
+                            <tr>
+                                <th class="px-4 py-2">ID</th>
+                                <th class="px-4 py-2">Producto</th>
+                                <th class="px-4 py-2">Cantidad</th>
+                                <th class="px-4 py-2">Fecha de Venta</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        let carrito = [];
+
+        function cargarProductos() {
+            axios.get('/mostrar_inventario').then(response => {
+                const productos = response.data.inventario;
+                const select = document.getElementById('producto_id');
+                select.innerHTML = '';
+                productos.forEach(producto => {
+                    const option = document.createElement('option');
+                    option.value = producto.id;
+                    option.textContent = producto.nombre;
+                    select.appendChild(option);
+                });
+            }).catch(error => console.error('Error al cargar los productos:', error));
+        }
+
+        function agregarAlCarrito() {
+            const producto_id = document.getElementById('producto_id').value;
+            const cantidad = document.getElementById('cantidad').value;
+            const producto_nombre = document.getElementById('producto_id').selectedOptions[0].textContent;
+
+            const itemExistente = carrito.find(item => item.producto_id === producto_id);
+            if (itemExistente) {
+                itemExistente.cantidad += parseInt(cantidad);
+            } else {
+                carrito.push({ producto_id, producto_nombre, cantidad: parseInt(cantidad) });
+            }
+
+            actualizarCarrito();
+        }
+
+        function actualizarCarrito() {
+            const tbody = document.getElementById('tabla-carrito').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+            carrito.forEach((item, index) => {
+                tbody.innerHTML += `<tr>
+                    <td class="border px-4 py-2">${item.producto_id}</td>
+                    <td class="border px-4 py-2">${item.producto_nombre}</td>
+                    <td class="border px-4 py-2">${item.cantidad}</td>
+                    <td class="border px-4 py-2">
+                        <button onclick="eliminarDelCarrito(${index})" class="p-1 bg-red-500 text-white rounded">Eliminar</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        function eliminarDelCarrito(index) {
+            carrito.splice(index, 1);
+            actualizarCarrito();
+        }
+
+        function registrarVenta() {
+            const fecha_venta = new Date().toISOString().split('T')[0];
+            carrito.forEach(item => {
+                axios.post('/vender_producto', {
+                    id_producto: item.producto_id,
+                    cantidad_vendida: item.cantidad,
+                    fecha_venta: fecha_venta
+                })
+                .then(response => {
+                    console.log('Venta registrada:', response.data.message);
+                })
+                .catch(error => {
+                    console.error('Error al registrar la venta:', error.response.data.error || 'Error desconocido');
+                });
+            });
+            carrito = [];
+            actualizarCarrito();
+            cargarVentas();
+        }
+
+        function cargarVentas() {
+            axios.get('/log_ventas').then(response => {
+                const ventas = response.data;
+                const tbody = document.getElementById('tabla-ventas').getElementsByTagName('tbody')[0];
+                tbody.innerHTML = '';
+                ventas.forEach(venta => {
+                    tbody.innerHTML += `<tr>
+                        <td class="border px-4 py-2">${venta.id}</td>
+                        <td class="border px-4 py-2">${venta.producto}</td>
+                        <td class="border px-4 py-2">${venta.cantidad}</td>
+                        <td class="border px-4 py-2">${venta.fecha_venta}</td>
+                    </tr>`;
+                });
+            }).catch(error => console.error('Error al cargar las ventas:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarProductos();
+            cargarVentas();
+        });
+    </script>
+</body>
+</html>

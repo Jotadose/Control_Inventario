@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrador - Control de Inventario</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #1a202c; }
+        .container { max-width: 1200px; }
+        .sidebar { min-width: 200px; }
+    </style>
+</head>
+<body class="text-gray-200">
+    <div class="container mx-auto p-4 flex">
+        <div class="sidebar bg-gray-700 p-4 rounded-lg">
+            <ul class="space-y-4">
+                <li><a href="/" class="text-white">INICIO</a></li>
+                <li><a href="/inventario" class="text-white">INVENTARIO</a></li>
+                <li><a href="/ventas" class="text-white">VENTAS</a></li>
+                <li><a href="/admin" class="text-white">ADMINISTRADOR</a></li>
+            </ul>
+        </div>
+        <div class="flex-grow ml-4">
+            <h1 class="text-3xl font-bold text-center mb-8">Administrador - Control de Inventario</h1>
+            <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                <h2 class="text-xl font-bold mb-4">Registrar Proveedor</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="nombre_proveedor" placeholder="Nombre del Proveedor" class="p-2 rounded bg-gray-700 text-white">
+                    <input type="text" id="contacto_proveedor" placeholder="Contacto" class="p-2 rounded bg-gray-700 text-white">
+                </div>
+                <button onclick="agregarProveedor()" class="p-2 bg-blue-500 text-white rounded mt-4">Agregar Proveedor</button>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                <h2 class="text-xl font-bold mb-4">Solicitar Abastecimiento</h2>
+                <div class="grid grid-cols-3 gap-4">
+                    <select id="producto_id" class="p-2 rounded bg-gray-700 text-white"></select>
+                    <input type="number" id="cantidad_abastecimiento" placeholder="Cantidad" class="p-2 rounded bg-gray-700 text-white">
+                    <input type="date" id="fecha_abastecimiento" class="p-2 rounded bg-gray-700 text-white">
+                </div>
+                <button onclick="solicitarAbastecimiento()" class="p-2 bg-green-500 text-white rounded mt-4">Solicitar Abastecimiento</button>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                <h2 class="text-xl font-bold mb-4">Log de Ventas</h2>
+                <div class="overflow-x-auto">
+                    <table id="tabla-ventas" class="min-w-full bg-gray-700 rounded-lg">
+                        <thead class="text-white">
+                            <tr>
+                                <th class="px-4 py-2">ID</th>
+                                <th class="px-4 py-2">Producto</th>
+                                <th class="px-4 py-2">Cantidad</th>
+                                <th class="px-4 py-2">Fecha de Venta</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-gray-800 p-4 rounded-lg mb-4">
+                <h2 class="text-xl font-bold mb-4">Movimientos de Stock</h2>
+                <div class="overflow-x-auto">
+                    <table id="tabla-movimientos" class="min-w-full bg-gray-700 rounded-lg">
+                        <thead class="text-white">
+                            <tr>
+                                <th class="px-4 py-2">ID</th>
+                                <th class="px-4 py-2">Producto</th>
+                                <th class="px-4 py-2">Cantidad</th>
+                                <th class="px-4 py-2">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function agregarProveedor() {
+            const nombre = document.getElementById('nombre_proveedor').value;
+            const contacto = document.getElementById('contacto_proveedor').value;
+            axios.post('/proveedores', { nombre, contacto })
+                .then(response => {
+                    alert('Proveedor agregado: ' + response.data.message);
+                    cargarProveedores();
+                })
+                .catch(error => {
+                    alert('Error al agregar proveedor: ' + (error.response.data.error || 'Error desconocido'));
+                });
+        }
+
+        function solicitarAbastecimiento() {
+            const producto_id = document.getElementById('producto_id').value;
+            const cantidad = document.getElementById('cantidad_abastecimiento').value;
+            const fecha_orden = document.getElementById('fecha_abastecimiento').value;
+            axios.post('/abastecimientos', { producto_id, cantidad, fecha_orden })
+                .then(response => {
+                    alert('Abastecimiento solicitado: ' + response.data.message);
+                })
+                .catch(error => {
+                    alert('Error al solicitar abastecimiento: ' + (error.response.data.error || 'Error desconocido'));
+                });
+        }
+
+        function cargarProveedores() {
+            axios.get('/proveedores').then(response => {
+                const proveedores = response.data;
+                const select = document.getElementById('producto_id');
+                select.innerHTML = '';
+                proveedores.forEach(proveedor => {
+                    const option = document.createElement('option');
+                    option.value = proveedor.id;
+                    option.textContent = proveedor.nombre;
+                    select.appendChild(option);
+                });
+            }).catch(error => console.error('Error al cargar los proveedores:', error));
+        }
+
+        function cargarVentas() {
+            axios.get('/log_ventas').then(response => {
+                const ventas = response.data;
+                const tbody = document.getElementById('tabla-ventas').getElementsByTagName('tbody')[0];
+                tbody.innerHTML = '';
+                ventas.forEach(venta => {
+                    tbody.innerHTML += `<tr>
+                        <td class="border px-4 py-2">${venta.id}</td>
+                        <td class="border px-4 py-2">${venta.producto}</td>
+                        <td class="border px-4 py-2">${venta.cantidad}</td>
+                        <td class="border px-4 py-2">${venta.fecha_venta}</td>
+                    </tr>`;
+                });
+            }).catch(error => console.error('Error al cargar las ventas:', error));
+        }
+
+        function cargarMovimientos() {
+            axios.get('/abastecimientos').then(response => {
+                const movimientos = response.data;
+                const tbody = document.getElementById('tabla-movimientos').getElementsByTagName('tbody')[0];
+                tbody.innerHTML = '';
+                movimientos.forEach(movimiento => {
+                    tbody.innerHTML += `<tr>
+                        <td class="border px-4 py-2">${movimiento.id}</td>
+                        <td class="border px-4 py-2">${movimiento.producto}</td>
+                        <td class="border px-4 py-2">${movimiento.cantidad}</td>
+                        <td class="border px-4 py-2">${movimiento.fecha_orden}</td>
+                    </tr>`;
+                });
+            }).catch(error => console.error('Error al cargar los movimientos:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarProveedores();
+            cargarVentas();
+            cargarMovimientos();
+        });
+    </script>
+</body>
+</html>
